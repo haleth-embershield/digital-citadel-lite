@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f8f9fa" rx="10" ry="10" />
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial" font-size="24" text-anchor="middle" font-weight="bold">Home DNS with Automatic Failover</text>
+  
+  <!-- Devices -->
+  <rect x="50" y="100" width="100" height="60" rx="10" ry="10" fill="#d1e7dd" stroke="#198754" stroke-width="2" />
+  <text x="100" y="135" font-family="Arial" font-size="14" text-anchor="middle">Family Devices</text>
+  
+  <!-- Router -->
+  <rect x="220" y="100" width="100" height="60" rx="10" ry="10" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" />
+  <text x="270" y="135" font-family="Arial" font-size="14" text-anchor="middle">Router</text>
+  <text x="270" y="155" font-family="Arial" font-size="12" text-anchor="middle" fill="#555">DHCP</text>
+  
+  <!-- Unbound -->
+  <rect x="390" y="100" width="120" height="60" rx="10" ry="10" fill="#e2e3e5" stroke="#6c757d" stroke-width="2" />
+  <text x="450" y="125" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Unbound</text>
+  <text x="450" y="145" font-family="Arial" font-size="12" text-anchor="middle">Primary DNS Server</text>
+  <text x="450" y="160" font-family="Arial" font-size="12" text-anchor="middle" fill="#555">Port 53</text>
+  
+  <!-- Pi-hole -->
+  <rect x="390" y="200" width="120" height="60" rx="10" ry="10" fill="#f8d7da" stroke="#dc3545" stroke-width="2" />
+  <text x="450" y="225" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Pi-hole</text>
+  <text x="450" y="245" font-family="Arial" font-size="12" text-anchor="middle">Ad Blocking</text>
+  <text x="450" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#555">Web UI on Port 80</text>
+  
+  <!-- Cloudflared -->
+  <rect x="390" y="300" width="120" height="60" rx="10" ry="10" fill="#fff3cd" stroke="#ffc107" stroke-width="2" />
+  <text x="450" y="325" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Cloudflared</text>
+  <text x="450" y="345" font-family="Arial" font-size="12" text-anchor="middle">DNS-over-HTTPS</text>
+  
+  <!-- Fallback DNS -->
+  <rect x="580" y="200" width="120" height="60" rx="10" ry="10" fill="#d1e7dd" stroke="#198754" stroke-width="2" />
+  <text x="640" y="225" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Fallback DNS</text>
+  <text x="640" y="245" font-family="Arial" font-size="12" text-anchor="middle">1.1.1.1</text>
+  <text x="640" y="260" font-family="Arial" font-size="10" text-anchor="middle" fill="#555">Used if Pi-hole fails</text>
+  
+  <!-- Internet -->
+  <rect x="580" y="300" width="120" height="60" rx="10" ry="10" fill="#cfe2ff" stroke="#0d6efd" stroke-width="2" />
+  <text x="640" y="335" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold">Internet</text>
+  
+  <!-- Arrows - Normal Flow -->
+  <!-- Devices to Router -->
+  <line x1="150" y1="130" x2="220" y2="130" stroke="#333" stroke-width="2" />
+  <polygon points="215,125 220,130 215,135" fill="#333" />
+  
+  <!-- Router to Unbound -->
+  <line x1="320" y1="130" x2="390" y2="130" stroke="#333" stroke-width="2" />
+  <polygon points="385,125 390,130 385,135" fill="#333" />
+  
+  <!-- Unbound to Pi-hole -->
+  <line x1="450" y1="160" x2="450" y2="200" stroke="#333" stroke-width="2" />
+  <polygon points="445,195 450,200 455,195" fill="#333" />
+  
+  <!-- Pi-hole to Cloudflared -->
+  <line x1="450" y1="260" x2="450" y2="300" stroke="#333" stroke-width="2" />
+  <polygon points="445,295 450,300 455,295" fill="#333" />
+  
+  <!-- Cloudflared to Internet -->
+  <line x1="510" y1="330" x2="580" y2="330" stroke="#333" stroke-width="2" />
+  <polygon points="575,325 580,330 575,335" fill="#333" />
+  
+  <!-- Fallback Path -->
+  <line x1="510" y1="130" x2="560" y2="130" stroke="#dc3545" stroke-width="2" stroke-dasharray="5,5" />
+  <line x1="560" y1="130" x2="560" y2="230" stroke="#dc3545" stroke-width="2" stroke-dasharray="5,5" />
+  <line x1="560" y1="230" x2="580" y2="230" stroke="#dc3545" stroke-width="2" stroke-dasharray="5,5" />
+  <polygon points="575,225 580,230 575,235" fill="#dc3545" />
+  
+  <!-- Fallback to Internet -->
+  <line x1="640" y1="260" x2="640" y2="300" stroke="#dc3545" stroke-width="2" stroke-dasharray="5,5" />
+  <polygon points="635,295 640,300 645,295" fill="#dc3545" />
+  
+  <!-- Labels -->
+  <text x="185" y="120" font-family="Arial" font-size="11" text-anchor="middle">DNS Queries</text>
+  <text x="355" y="120" font-family="Arial" font-size="11" text-anchor="middle">Single DNS IP</text>
+  <text x="470" y="180" font-family="Arial" font-size="11" text-anchor="middle">Primary Path</text>
+  <text x="585" y="180" font-family="Arial" font-size="11" text-anchor="middle" fill="#dc3545">Failover Path</text>
+  
+  <!-- Legend -->
+  <rect x="50" y="360" width="15" height="5" fill="#333" />
+  <text x="75" y="365" font-family="Arial" font-size="10">Normal Flow</text>
+  
+  <rect x="150" y="360" width="15" height="5" fill="#dc3545" />
+  <text x="175" y="365" font-family="Arial" font-size="10" fill="#dc3545">Failover Path</text>
+</svg>
