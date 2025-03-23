@@ -21,25 +21,25 @@ services:
       - "80:80/tcp"  # Web interface for Pi-hole admin
     environment:
       - TZ=${TIMEZONE:-America/New_York}
-      - WEBPASSWORD=${PIHOLE_WEBPASSWORD:-admin}
-      - PIHOLE_DNS_=cloudflared#5053
-      - DNS_BOGUS_PRIV=true
-      - DNS_FQDN_REQUIRED=true
-      - DNSSEC=true
-      - QUERY_LOGGING=true
-      - TEMPERATUREUNIT=${TEMPERATURE_UNIT:-c}
-      - WEBUIBOXEDLAYOUT=${WEBUI_BOXED_LAYOUT:-boxed}
-      - WEBTHEME=${WEB_THEME:-default-dark}
+      - FTLCONF_webserver_api_password=${PIHOLE_WEBPASSWORD:-admin}
+      - FTLCONF_dns_upstreams=cloudflared#5053
+      - FTLCONF_dns_listeningMode=all
+      - FTLCONF_dns_bogus_priv=true
+      - FTLCONF_dns_dnssec=true
+      - FTLCONF_webserver_query_logging=true
+      - FTLCONF_gui_theme=${WEB_THEME:-default-dark}
       - FTLCONF_LOCAL_IPV4=${SERVER_IP:-}
     volumes:
       - /container_data/pihole/etc-pihole:/etc/pihole
-      - /container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      # v6 note: only enable this if you're migrating from v5 or need custom configs
+      # - /container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     depends_on:
       - cloudflared
     networks:
       - dns_network
     cap_add:
       - NET_ADMIN  # Required for DHCP
+      - SYS_NICE   # Gives Pi-hole more processing priority
     healthcheck:
       test: ["CMD", "dig", "@127.0.0.1", "google.com"]
       interval: 30s
@@ -96,7 +96,7 @@ services:
       - TZ=${TIMEZONE:-America/New_York}
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_INCLUDE_STOPPED=false
-      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE:-0 0 2 * * *}
+      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE:-0 0 4 * * 0}
       - WATCHTOWER_NOTIFICATION_URL=${NOTIFICATION_URL:-}
       - WATCHTOWER_NOTIFICATIONS=${ENABLE_NOTIFICATIONS:-disabled}
     volumes:
