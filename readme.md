@@ -83,7 +83,7 @@ volumes:
 6. Start the containers:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Usage
@@ -155,6 +155,17 @@ For maximum stability, the `.env` file allows you to pin the Pi-hole version. Af
   - Internet should still work through the fallback DNS
   - Start Pi-hole again with: `docker-compose start pihole`
 - **Container update issues**: Check Watchtower logs with `docker-compose logs watchtower`
+- **Fail to Bind Port 53 Already in Use**:
+  - a system process probably has 53 already bound (Ubuntu 24.04 lts does)
+  - this cleaned it up for me
+```bash
+# Check if systemd-resolved is running
+sudo systemctl status systemd-resolved
+
+# If it's running, disable it
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+```
 
 ## Family-Friendly Setup Features
 
