@@ -1,186 +1,134 @@
-## How It Works
+# Pi-hole Docker Compose with Cloudflared DNS-over-HTTPS
 
-This system uses a carefully designed DNS forwarding chain:
-
-1. **Unbound** serves as your primary DNS server (exposed on port 53)
-2. Unbound forwards DNS requests to **Pi-hole** first
-3. Pi-hole provides ad-blocking and forwards clean requests to **Cloudflared** (DNS-over-HTTPS)
-4. If Pi-hole becomes unavailable, Unbound automatically fails over to the fallback DNS (default: 1.1.1.1)
-
-This setup ensures:
-- Only one DNS server is needed in your router/DHCP configuration
-- Transparent fallback if any component fails
-- Ad-blocking under normal circumstances
-- Internet access continues to work even if Pi-hole crashes# Single-point DNS with Automatic Failover
-
-This repository contains Docker Compose configuration for a home network DNS setup with built-in failover capabilities. It provides a single DNS server address with automatic fallbacks if Pi-hole ever fails.
+This repository contains a simple Docker Compose configuration to run Pi-hole v6 with Cloudflared DNS-over-HTTPS for encrypted DNS resolution. This setup is perfect for home networks wanting to block ads and enhance privacy.
 
 ## Overview
 
 This setup provides:
-- **Single DNS entry point**: Only one DNS address needs to be configured in your router
-- **Automatic failover**: If Pi-hole fails, DNS requests fall back to public DNS servers
-- **Pi-hole**: Network-wide ad blocking with web interface
-- **Cloudflared**: DNS-over-HTTPS for enhanced privacy
-- **Unbound**: Front-end DNS resolver that manages failover
-- **Watchtower**: Automatic container updates during scheduled maintenance windows
-- **Healthchecks**: Automatic container restarts if services fail
+- **Pi-hole v6**: Network-wide ad blocking with easy-to-use web interface
+- **Cloudflared**: DNS-over-HTTPS for enhanced privacy and security
+- **Simple configuration**: Easy to set up and maintain
+- **Persistent storage**: Your configurations are saved between container restarts
 
-## Prerequisites
+## Quick Start
 
-- Docker and Docker Compose installed on your system
-- Basic knowledge of Docker and networking
-- Port 53 available on your host (or configured to use a different port)
-
-## Directory Structure
-
-```
-/container_data/
-├── pihole/
-│   ├── etc-pihole/         # Pi-hole configuration
-│   └── etc-dnsmasq.d/      # Custom DNS configurations
-└── unbound/
-    └── etc/                # Unbound DNS resolver configuration
-```
-
-## Installation
-
-1. Create the data directory structure:
-
+1. Create a directory for your Pi-hole setup:
 ```bash
-sudo mkdir -p container_data/pihole/etc-pihole container_data/unbound/etc
+git clone https://github.com/haleth-embershield/digital-citadel-lite
+cd digital-citadel-lite
+mkdir container_data/pihole/etc-pihole
 ```
 
-2. Clone this repository or create the Docker Compose and .env files:
-
-```bash
-# Clone the repository (if available)
-# git clone <repository-url>
-# OR
-# Create a directory for the configuration files
-mkdir -p ~/pihole-setup
-cd ~/pihole-setup
-```
-
-3. Create the `docker-compose.yml` and `.env` files from this repository.
-
-4. Update the volume paths in `docker-compose.yml` to use the `/container_data` directory:
-
+2. Create a `docker-compose.yml` file with the following content:
 ```yaml
-volumes:
-  - container_data/pihole/etc-pihole:/etc/pihole
-  - container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+services:
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: 'proxy-dns --port 5053 --upstream https://dns.cloudflare.com/dns-query --upstream https://dns.google/dns-query'
+    networks:
+      - dns_network
+    
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    ports:
+      # DNS Ports
+      - "53:53/tcp"
+      - "53:53/udp"
+      # Default HTTP Port
+      - "80:80/tcp"
+      # Default HTTPS Port. FTL will generate a self-signed certificate
+      - "443:443/tcp"
+      # Uncomment the line below if you want Pi-hole as your DHCP server
+      #- "67:67/udp"
+    environment:
+      # Set your timezone
+      TZ: ${TIMEZONE:-America/New_York}
+      # Web interface password (use a strong password)
+      FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD:-admin}
+      # Configure Pi-hole to use cloudflared for DNS
+      FTLCONF_dns_upstreams: cloudflared#5053
+      # Listen on all interfaces
+      FTLCONF_dns_listeningMode: all
+      # Enable DNSSEC
+      FTLCONF_dns_dnssec: true
+      # Enable query logging
+      FTLCONF_webserver_query_logging: true
+      # Set web theme
+      FTLCONF_gui_theme: ${WEB_THEME:-default-dark}
+    volumes:
+      # For persisting Pi-hole's databases and configuration
+      - './container_data/pihole/etc-pihole:/etc/pihole'
+    depends_on:
+      - cloudflared
+    networks:
+      - dns_network
+    cap_add:
+      # Required if you are using Pi-hole as your DHCP server
+      - NET_ADMIN
+      # Optional, gives Pi-hole more processing priority
+      - SYS_NICE
+
+networks:
+  dns_network:
+    driver: bridge
 ```
 
-5. Modify the `.env` file to set your preferred configuration:
-   - Change `PIHOLE_WEBPASSWORD` to a secure password
-   - Set `SERVER_IP` to your server's static local IP address
-   - Update the timezone to match your location
-   - Set `PIHOLE_VERSION` to pin a specific Pi-hole version (recommended for stability)
-   - Adjust `WATCHTOWER_SCHEDULE` to set automatic update times (default: 4 AM on Sundays)
-   - Configure notification settings if desired (email, Slack, etc.)
+3. Create a `.env` file (optional) to configure environment variables:
+```
+TIMEZONE=America/New_York
+PIHOLE_WEBPASSWORD=your_secure_password
+WEB_THEME=default-dark
+```
 
-6. Start the containers:
-
+4. Start the containers:
 ```bash
 docker compose up -d
 ```
 
-## Usage
+5. Access the Pi-hole admin interface at `http://your-server-ip/admin`
 
-### Configuring Your Router
+## Configuring Your Router
 
-1. Set your router's DHCP to distribute **only your server's IP address** as the DNS server
+1. Set your router's DHCP to distribute your server's IP address as the DNS server
 2. Make sure your server has a static IP address
-
-### Accessing Pi-hole
-
-- Web interface: `http://your-server-ip` (port 80)
-- Default login: The password you set in the `.env` file
-
-### DNS Resolution Flow
-
-```
-Your Devices → Router → Unbound (port 53) → Pi-hole → Cloudflared → Internet
-                                  ↓
-                         Fallback DNS (if Pi-hole fails)
-```
-
-## Maintenance
-
-### Automatic Updates
-
-Watchtower is configured to automatically update all containers according to the schedule in your `.env` file. By default, this happens at 4 AM on Sundays to minimize disruption.
-
-### Manual Updates (if needed)
-
-```bash
-docker-compose pull
-docker-compose up -d
-```
-
-### Viewing Logs
-
-```bash
-# View Pi-hole logs
-docker-compose logs pihole
-
-# View Cloudflared logs
-docker-compose logs cloudflared
-
-# View Watchtower logs (to check update status)
-docker-compose logs watchtower
-```
-
-### Backup
-
-The important data is stored in the `/container_data` directory. Back up this directory to preserve your configuration:
-
-```bash
-# Simple backup script
-tar -czf pihole-backup-$(date +%Y%m%d).tar.gz /container_data
-```
-
-### Version Pinning
-
-For maximum stability, the `.env` file allows you to pin the Pi-hole version. After a new version has been released and proven stable, you can update the `PIHOLE_VERSION` value.
 
 ## Troubleshooting
 
-- **Cannot access Pi-hole web interface**: Check if the container is running with `docker-compose ps`
-- **No internet connection**: 
-  1. Check if Unbound is running: `docker-compose logs unbound`
-  2. Verify the fallback DNS is working: `docker exec -it unbound dig @1.1.1.1 google.com`
-- **Testing failover**: You can test the fallback by stopping Pi-hole: `docker-compose stop pihole`
-  - Internet should still work through the fallback DNS
-  - Start Pi-hole again with: `docker-compose start pihole`
-- **Container update issues**: Check Watchtower logs with `docker-compose logs watchtower`
-- **Fail to Bind Port 53 Already in Use**:
-  - a system process probably has 53 already bound (Ubuntu 24.04 lts does)
-  - this cleaned it up for me
+- **Port 53 already in use**: Some systems (like Ubuntu) use systemd-resolved which binds to port 53. To fix:
 ```bash
-# Check if systemd-resolved is running
-sudo systemctl status systemd-resolved
-
-# If it's running, disable it
 sudo systemctl stop systemd-resolved
 sudo systemctl disable systemd-resolved
 ```
 
-## Family-Friendly Setup Features
+- **Checking logs**:
+```bash
+# Pi-hole logs
+docker logs pihole
 
-- **Zero configuration for family members**: They never need to change DNS settings
-- **Completely transparent failover**: Internet keeps working even if Pi-hole fails
-- **Scheduled updates**: Updates happen at night during low-usage hours (configurable)
-- **Health monitoring**: Services automatically restart if they become unhealthy
-- **Version pinning**: Prevents unexpected breaking changes from Pi-hole updates
+# Cloudflared logs
+docker logs cloudflared
+```
 
-## Security Considerations
+## Updating
 
-- The default configuration exposes Pi-hole's web interface to your local network
-- Consider setting up authentication for additional security
-- Regularly update your containers for security patches
+To update your containers:
+```bash
+docker compose pull
+docker compose up -d
+```
 
-## License
+## Advanced Setup
 
-This project is shared under the MIT License.
+For a more advanced setup with automatic failover using Unbound, refer to the `later_readme.md` file in this repository. That setup provides:
+- Automatic DNS failover if Pi-hole becomes unavailable
+- More complex but more resilient infrastructure
+- Single DNS entry point with built-in redundancy
+
+## Additional Resources
+
+- [Pi-hole Documentation](https://docs.pi-hole.net/)
+- [Pi-hole Docker Documentation](https://github.com/pi-hole/docker-pi-hole)
