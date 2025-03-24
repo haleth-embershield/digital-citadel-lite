@@ -30,9 +30,9 @@ services:
       - FTLCONF_gui_theme=${WEB_THEME:-default-dark}
       - FTLCONF_LOCAL_IPV4=${SERVER_IP:-}
     volumes:
-      - container_data/pihole/etc-pihole:/etc/pihole
+      - ./container_data/pihole/etc-pihole:/etc/pihole
       # v6 note: only enable this if you're migrating from v5 or need custom configs
-      # - /container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      # - ./container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     depends_on:
       - cloudflared
     networks:
@@ -55,7 +55,7 @@ services:
       - "${DNS_PORT:-53}:53/tcp"
       - "${DNS_PORT:-53}:53/udp"
     volumes:
-      - container_data/unbound/etc:/opt/unbound/etc/unbound
+      - ./container_data/unbound/etc:/opt/unbound/etc/unbound
     networks:
       - dns_network
     healthcheck:
