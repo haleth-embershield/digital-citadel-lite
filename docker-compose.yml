@@ -3,7 +3,7 @@ services:
     container_name: cloudflared
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: 'proxy-dns --port 5053 --upstream https://dns.cloudflare.com/dns-query --upstream https://dns.google/dns-query'
+    command: 'proxy-dns --address 0.0.0.0 --port 5053 --upstream https://dns.cloudflare.com/dns-query --upstream https://dns.google/dns-query'
     networks:
       - dns_network
     
@@ -27,8 +27,8 @@ services:
       # Web interface password
       FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD:-admin}
       # Configure Pi-hole to use cloudflared for DNS
-      # FTLCONF_dns_upstreams: cloudflared#5053
-      FTLCONF_dns_upstreams: 1.1.1.1#53
+      FTLCONF_dns_upstreams: cloudflared#5053
+      # FTLCONF_dns_upstreams: 1.1.1.1#53
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
