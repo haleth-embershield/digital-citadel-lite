@@ -16,72 +16,14 @@ This setup provides:
 ```bash
 git clone https://github.com/haleth-embershield/digital-citadel-lite
 cd digital-citadel-lite
-mkdir container_data/pihole/etc-pihole
+mkdir -p container_data/pihole/etc-pihole
 ```
 
-2. Create a `docker-compose.yml` file with the following content:
-```yaml
-services:
-  cloudflared:
-    container_name: cloudflared
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: 'proxy-dns --port 5053 --upstream https://dns.cloudflare.com/dns-query --upstream https://dns.google/dns-query'
-    networks:
-      - dns_network
-    
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    restart: unless-stopped
-    ports:
-      # DNS Ports
-      - "53:53/tcp"
-      - "53:53/udp"
-      # Default HTTP Port
-      - "80:80/tcp"
-      # Default HTTPS Port. FTL will generate a self-signed certificate
-      - "443:443/tcp"
-      # Uncomment the line below if you want Pi-hole as your DHCP server
-      #- "67:67/udp"
-    environment:
-      # Set your timezone
-      TZ: ${TIMEZONE:-America/New_York}
-      # Web interface password (use a strong password)
-      FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD:-admin}
-      # Configure Pi-hole to use cloudflared for DNS
-      FTLCONF_dns_upstreams: cloudflared#5053
-      # Listen on all interfaces
-      FTLCONF_dns_listeningMode: all
-      # Enable DNSSEC
-      FTLCONF_dns_dnssec: true
-      # Enable query logging
-      FTLCONF_webserver_query_logging: true
-      # Set web theme
-      FTLCONF_gui_theme: ${WEB_THEME:-default-dark}
-    volumes:
-      # For persisting Pi-hole's databases and configuration
-      - './container_data/pihole/etc-pihole:/etc/pihole'
-    depends_on:
-      - cloudflared
-    networks:
-      - dns_network
-    cap_add:
-      # Required if you are using Pi-hole as your DHCP server
-      - NET_ADMIN
-      # Optional, gives Pi-hole more processing priority
-      - SYS_NICE
+3. Create a `.env` file to configure environment variables:
 
-networks:
-  dns_network:
-    driver: bridge
-```
-
-3. Create a `.env` file (optional) to configure environment variables:
-```
-TIMEZONE=America/New_York
-PIHOLE_WEBPASSWORD=your_secure_password
-WEB_THEME=default-dark
+```bash
+cp .env.example .env
+sudo nano .env
 ```
 
 4. Start the containers:
@@ -98,11 +40,11 @@ docker compose up -d
 
 ## Troubleshooting
 
-- **Port 53 already in use**: Some systems (like Ubuntu) use systemd-resolved which binds to port 53. To fix:
-```bash
-sudo systemctl stop systemd-resolved
-sudo systemctl disable systemd-resolved
-```
+**Installing on Ubuntu or Fedora**
+From https://github.com/pi-hole/docker-pi-hole/blob/master/README.md
+Modern releases of Ubuntu (17.10+) and Fedora (33+) include systemd-resolved which is configured by default to implement a caching DNS stub resolver. This will prevent pi-hole from listening on port 53. The stub resolver should be disabled with: ```sudo sed -r -i.orig 's/#?DNSStubListener=yes/DNSStubListener=no/g' /etc/systemd/resolved.conf.```
+
+This will not change the nameserver settings, which point to the stub resolver thus preventing DNS resolution. Change the /etc/resolv.conf symlink to point to /run/systemd/resolve/resolv.conf, which is automatically updated to follow the system's netplan: ```sudo sh -c 'rm /etc/resolv.conf && ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf'``` After making these changes, you should restart systemd-resolved using ```systemctl restart systemd-resolved```
 
 - **Checking logs**:
 ```bash
