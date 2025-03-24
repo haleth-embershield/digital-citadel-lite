@@ -46,6 +46,24 @@ Modern releases of Ubuntu (17.10+) and Fedora (33+) include systemd-resolved whi
 
 This will not change the nameserver settings, which point to the stub resolver thus preventing DNS resolution. Change the /etc/resolv.conf symlink to point to /run/systemd/resolve/resolv.conf, which is automatically updated to follow the system's netplan: ```sudo sh -c 'rm /etc/resolv.conf && ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf'``` After making these changes, you should restart systemd-resolved using ```systemctl restart systemd-resolved```
 
+**I updated my netplan per Claude: see netplan_edit.md**
+If you want to explicitly set your docker host's nameservers you can edit the netplan(s) found at /etc/netplan, then run sudo netplan apply.
+
+Example netplan:
+
+network:
+    ethernets:
+        ens160:
+            dhcp4: true
+            dhcp4-overrides:
+                use-dns: false
+            nameservers:
+                addresses: [127.0.0.1]
+    version: 2
+Note that it is also possible to disable systemd-resolved entirely. However, this can cause problems with name resolution in vpns (see bug report).
+It also disables the functionality of netplan since systemd-resolved is used as the default renderer (see man netplan).
+If you choose to disable the service, you will need to manually set the nameservers, for example by creating a new /etc/resolv.conf.
+
 - **Checking logs**:
 ```bash
 # Pi-hole logs

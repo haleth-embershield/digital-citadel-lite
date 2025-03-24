@@ -27,7 +27,7 @@ services:
       # Web interface password
       FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD:-admin}
       # Configure Pi-hole to use cloudflared for DNS
-      FTLCONF_dns_upstreams: 127.0.0.1#5053
+      FTLCONF_dns_upstreams: cloudflared#5053
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
