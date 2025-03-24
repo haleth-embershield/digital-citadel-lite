@@ -48,7 +48,7 @@ This setup provides:
 1. Create the data directory structure:
 
 ```bash
-sudo mkdir -p /container_data/pihole/etc-pihole /container_data/pihole/etc-dnsmasq.d /container_data/unbound/etc
+sudo mkdir -p container_data/pihole/etc-pihole container_data/unbound/etc
 ```
 
 2. Clone this repository or create the Docker Compose and .env files:
@@ -68,8 +68,8 @@ cd ~/pihole-setup
 
 ```yaml
 volumes:
-  - /container_data/pihole/etc-pihole:/etc/pihole
-  - /container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+  - container_data/pihole/etc-pihole:/etc/pihole
+  - container_data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
 ```
 
 5. Modify the `.env` file to set your preferred configuration:
