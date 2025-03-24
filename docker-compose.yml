@@ -27,17 +27,15 @@ services:
       # Web interface password
       FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD:-admin}
       # Configure Pi-hole to use cloudflared for DNS
-      FTLCONF_dns_upstreams: cloudflared#5053
+      # FTLCONF_dns_upstreams: cloudflared#5053
+      FTLCONF_dns_upstreams: 1.1.1.1#53
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
       FTLCONF_dns_dnssec: true
       # Disable bogus private reverse lookups
       FTLCONF_dns_bogusPriv: true
-      # Enable query logging
-      FTLCONF_webserver_query_logging: true
-      # Set web theme
-      FTLCONF_gui_theme: default-dark
+
     volumes:
       # For persisting Pi-hole's databases and configuration
       - './container_data/pihole/etc-pihole:/etc/pihole'
