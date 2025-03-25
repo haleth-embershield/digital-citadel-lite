@@ -36,7 +36,7 @@ services:
       # Disable bogus private reverse lookups
       FTLCONF_dns_bogusPriv: true
       # Disable rate limiting
-      FTLCONF_dns_rateLimit_count: 10000000
+      FTLCONF_dns_rateLimit_count: 1000000
       FTLCONF_dns_rateLimit_interval: 10
 
     volumes:
