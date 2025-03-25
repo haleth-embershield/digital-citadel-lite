@@ -36,7 +36,9 @@ services:
       # Disable bogus private reverse lookups
       FTLCONF_dns_bogusPriv: true
       # Disable rate limiting
-      RATE_LIMIT: "100000/10"
+      # RATE_LIMIT: "100000/10"
+      RATE_LIMIT_COUNT: 0
+      RATE_LIMIT_INTERVAL: 0
 
     volumes:
       # For persisting Pi-hole's databases and configuration
