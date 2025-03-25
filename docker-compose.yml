@@ -40,7 +40,9 @@ services:
       FTLCONF_dns_rateLimit_interval: 10
       # 0x20 encoding not supported by cloudfalred at the moment
       FTLCONF_misc_dnsmasq_lines: "no-0x20-encode"
-      
+      # Enable conditional forwarding
+      FTLCONF_dns_revServers: ${REVERSE_SERVERS:-}
+
     volumes:
       # For persisting Pi-hole's databases and configuration
       - './container_data/pihole/etc-pihole:/etc/pihole'
