@@ -31,10 +31,12 @@ services:
       # FTLCONF_dns_upstreams: 1.1.1.1#53
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
-      # Enable DNSSEC
-      FTLCONF_dns_dnssec: true
+      # Enable DNSSEC (false to aid erigon node for now)
+      FTLCONF_dns_dnssec: false
       # Disable bogus private reverse lookups
       FTLCONF_dns_bogusPriv: true
+      # Disable rate limiting
+      FTLCONF_rate_limit: false
 
     volumes:
       # For persisting Pi-hole's databases and configuration
