@@ -32,9 +32,9 @@ services:
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
-      FTLCONF_dns_dnssec: true
+      FTLCONF_dns_dnssec: false
       # Disable bogus private reverse lookups
-      FTLCONF_dns_bogusPriv: true
+      FTLCONF_dns_bogusPriv: false
       # Increase rate limiting
       FTLCONF_dns_rateLimit_count: 1000000
       FTLCONF_dns_rateLimit_interval: 10
