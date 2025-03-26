@@ -13,9 +13,9 @@ services:
     restart: unless-stopped
     ports:
       # Primary DNS Ports 53 are handled by dns-forwarder
-      # 5153 as backup for testing (no required)
-      - "5153:53/tcp"
-      - "5153:53/udp"
+      # 5153 as backup for testing 
+      - "53:53/tcp"
+      - "53:53/udp"
       # Default HTTP Port
       - "80:80/tcp"
       # Default HTTPS Port. FTL will generate a self-signed certificate
@@ -66,8 +66,8 @@ services:
     build: ./dns-forwarder
     container_name: dns-forwarder
     ports:
-      - "53:53/udp"
-      - "53:53/tcp"
+      - "4153:53/udp"
+      - "4153:53/tcp"
     restart: unless-stopped
     depends_on:
       - pihole
