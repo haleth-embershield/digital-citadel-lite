@@ -13,8 +13,8 @@ services:
     restart: unless-stopped
     ports:
       # DNS Ports (handled by dnsmasq)
-      # - "53:53/tcp"
-      # - "53:53/udp"
+      - "53:53/tcp"
+      - "53:53/udp"
       # Default HTTP Port
       - "80:80/tcp"
       # Default HTTPS Port. FTL will generate a self-signed certificate
@@ -67,8 +67,8 @@ services:
       restart: unless-stopped
       ports:
         # dnsmasq takes the DNS ports for client access
-        - "53:53/tcp"
-        - "53:53/udp"
+        - "4153:53/tcp"
+        - "4153:53/udp"
       volumes:
         - './container_data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf'
       depends_on:
