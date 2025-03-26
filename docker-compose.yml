@@ -32,12 +32,16 @@ services:
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
-      FTLCONF_dns_dnssec: true
+      FTLCONF_dns_dnssec: false
       # Disable bogus private reverse lookups
-      FTLCONF_dns_bogusPriv: true
+      FTLCONF_dns_bogusPriv: false
+      # Other DNS settings
+      FTLCONF_dns_piholePTR: "HOSTNAME"
+      FTLCONF_dns_domainNeeded: false
+      FTLCONF_dns_domain: "localdomain"
       # Increase rate limiting
-      FTLCONF_dns_rateLimit_count: 1000000
-      FTLCONF_dns_rateLimit_interval: 10
+      # FTLCONF_dns_rateLimit_count: 10000
+      # FTLCONF_dns_rateLimit_interval: 60
       # 0x20 encoding not supported by cloudfalred at the moment
       FTLCONF_misc_dnsmasq_lines: "no-0x20-encode"
       # Enable conditional forwarding
