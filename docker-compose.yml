@@ -61,9 +61,9 @@ services:
       - SYS_NICE
       - SYS_TIME
 
-  dnsmasq:
-    build: ./dnsmasq-custom
-    container_name: dnsmasq
+  dns-forwarder:
+    build: ./dns-forwarder
+    container_name: dns-forwarder
     ports:
       - "4153:53/udp"
       - "4153:53/tcp"
