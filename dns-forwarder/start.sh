@@ -76,7 +76,7 @@ RECOVERY_THRESHOLD=3
         fi
         
         # Test current DNS server
-        if nslookup -timeout=1 google.com $ACTIVE_DNS > /dev/null 2>&1; then
+        if nslookup -timeout=2 google.com $ACTIVE_DNS > /dev/null 2>&1; then
             # Current DNS is working
             if [ "$ACTIVE_DNS" != "$PRIMARY_DNS" ]; then
                 # We're on a backup server, check if primary is back
@@ -85,7 +85,7 @@ RECOVERY_THRESHOLD=3
                 
                 if [ $RECOVERY_COUNT -ge $RECOVERY_THRESHOLD ]; then
                     # Try primary again
-                    if nslookup -timeout=1 google.com $PRIMARY_DNS > /dev/null 2>&1; then
+                    if nslookup -timeout=2 google.com $PRIMARY_DNS > /dev/null 2>&1; then
                         echo "$(date): Primary DNS recovered! Switching back."
                         ACTIVE_DNS="$PRIMARY_DNS"
                         start_forwarders "$ACTIVE_DNS"
