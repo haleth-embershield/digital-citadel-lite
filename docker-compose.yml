@@ -12,9 +12,9 @@ services:
     image: pihole/pihole:latest
     restart: unless-stopped
     ports:
-      # DNS Ports
-      - "53:53/tcp"
-      - "53:53/udp"
+      # DNS Ports (handled by dnsmasq)
+      # - "53:53/tcp"
+      # - "53:53/udp"
       # Default HTTP Port
       - "80:80/tcp"
       # Default HTTPS Port. FTL will generate a self-signed certificate
@@ -42,10 +42,10 @@ services:
       # Increase rate limiting
       # FTLCONF_dns_rateLimit_count: 10000
       # FTLCONF_dns_rateLimit_interval: 60
-      # 0x20 encoding not supported by cloudfalred at the moment
+      # 0x20 encoding not supported by cloudflared at the moment
       FTLCONF_misc_dnsmasq_lines: "no-0x20-encode"
       # Enable conditional forwarding
-      # FTLCONF_dns_revServers: ${REVERSE_SERVERS:-}
+      FTLCONF_dns_revServers: ${REVERSE_SERVERS:-}
 
     volumes:
       # For persisting Pi-hole's databases and configuration
@@ -60,6 +60,21 @@ services:
       # Optional, gives Pi-hole more processing priority
       - SYS_NICE
       - SYS_TIME
+
+dnsmasq:
+    container_name: dnsmasq
+    image: jpillora/dnsmasq:latest
+    restart: unless-stopped
+    ports:
+      # dnsmasq takes the DNS ports for client access
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - './container_data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf'
+    depends_on:
+      - pihole
+    networks:
+      - dns_network
 
 networks:
   dns_network:
