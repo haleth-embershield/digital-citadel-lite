@@ -32,11 +32,11 @@ services:
       # Listen on all interfaces
       FTLCONF_dns_listeningMode: all
       # Enable DNSSEC
-      FTLCONF_dns_dnssec: false
+      FTLCONF_dns_dnssec: true
       # Disable bogus private reverse lookups
       # FTLCONF_dns_bogusPriv: false
       # Other DNS settings (add to .env.example)
-      FTLCONF_dns_piholePTR: "HOSTNAME"
+      # FTLCONF_dns_piholePTR: "HOSTNAME"
       FTLCONF_dns_domainNeeded: false
       FTLCONF_dns_domain: "localdomain"
       # Increase rate limiting
