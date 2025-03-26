@@ -62,19 +62,17 @@ services:
       - SYS_TIME
 
   dnsmasq:
-      container_name: dnsmasq
-      image: jpillora/dnsmasq:latest
-      restart: unless-stopped
-      ports:
-        # dnsmasq takes the DNS ports for client access
-        - "4153:53/tcp"
-        - "4153:53/udp"
-      volumes:
-        - './container_data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf'
-      depends_on:
-        - pihole
-      networks:
-        - dns_network
+    container_name: dnsmasq
+    image: andyshinn/dnsmasq:latest
+    restart: unless-stopped
+    ports:
+      - "4153:53/udp"  # Host:4153 -> Container:53
+      - "4153:53/tcp"
+    entrypoint: ["/bin/sh", "-c", "echo -e '# Forward to Pi-hole first\nserver=pihole\n# Fallback to Cloudflare and Google if Pi-hole chain fails\nserver=1.1.1.1\nserver=8.8.8.8\n# Use servers in order, only fall back if upstream fails\nstrict-order\n# Don’t resolve locally, just forward\nno-resolv\n# Listen on all interfaces in the container\nlisten-address=0.0.0.0' > /etc/dnsmasq.conf && dnsmasq -k"]
+    depends_on:
+      - pihole
+    networks:
+      - dns_network
 
 networks:
   dns_network:
