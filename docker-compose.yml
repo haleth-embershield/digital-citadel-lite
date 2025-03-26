@@ -61,15 +61,15 @@ services:
       - SYS_NICE
       - SYS_TIME
 
-  haproxy:
-    container_name: haproxy
-    image: haproxy:latest
+  dnsdist:
+    container_name: dnsdist
+    image: powerdns/dnsdist:latest
     restart: unless-stopped
     ports:
-      - "4153:53/udp"  # Test on 4153
+      - "4153:53/udp"
       - "4153:53/tcp"
     volumes:
-      - './container_data/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg'
+      - './container_data/dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf'
     depends_on:
       - pihole
     networks:
