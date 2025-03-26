@@ -61,20 +61,20 @@ services:
       - SYS_NICE
       - SYS_TIME
 
-dnsmasq:
-    container_name: dnsmasq
-    image: jpillora/dnsmasq:latest
-    restart: unless-stopped
-    ports:
-      # dnsmasq takes the DNS ports for client access
-      - "53:53/tcp"
-      - "53:53/udp"
-    volumes:
-      - './container_data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf'
-    depends_on:
-      - pihole
-    networks:
-      - dns_network
+  dnsmasq:
+      container_name: dnsmasq
+      image: jpillora/dnsmasq:latest
+      restart: unless-stopped
+      ports:
+        # dnsmasq takes the DNS ports for client access
+        - "53:53/tcp"
+        - "53:53/udp"
+      volumes:
+        - './container_data/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf'
+      depends_on:
+        - pihole
+      networks:
+        - dns_network
 
 networks:
   dns_network:
