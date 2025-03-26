@@ -34,8 +34,8 @@ services:
       # Enable DNSSEC
       FTLCONF_dns_dnssec: false
       # Disable bogus private reverse lookups
-      FTLCONF_dns_bogusPriv: false
-      # Other DNS settings
+      # FTLCONF_dns_bogusPriv: false
+      # Other DNS settings (add to .env.example)
       FTLCONF_dns_piholePTR: "HOSTNAME"
       FTLCONF_dns_domainNeeded: false
       FTLCONF_dns_domain: "localdomain"
@@ -45,7 +45,7 @@ services:
       # 0x20 encoding not supported by cloudfalred at the moment
       FTLCONF_misc_dnsmasq_lines: "no-0x20-encode"
       # Enable conditional forwarding
-      FTLCONF_dns_revServers: ${REVERSE_SERVERS:-}
+      # FTLCONF_dns_revServers: ${REVERSE_SERVERS:-}
 
     volumes:
       # For persisting Pi-hole's databases and configuration
