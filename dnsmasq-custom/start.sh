@@ -4,9 +4,13 @@ set -e
 # Copy the template config to the actual config
 cp /etc/dnsmasq.conf.template /etc/dnsmasq.conf
 
-# Display the contents of the config file
+# Display the contents of the config file with better formatting
+echo "============================================="
 echo "Contents of dnsmasq.conf:"
+echo "============================================="
 cat /etc/dnsmasq.conf
+echo "============================================="
+echo
 
 # Try to resolve pihole using Docker DNS first
 PIHOLE_IP=$(getent hosts pihole | awk '{ print $1 }')
