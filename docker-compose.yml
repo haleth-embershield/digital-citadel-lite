@@ -61,14 +61,15 @@ services:
       - SYS_NICE
       - SYS_TIME
 
-  dnsmasq:
-    container_name: dnsmasq
-    image: andyshinn/dnsmasq:latest
+  haproxy:
+    container_name: haproxy
+    image: haproxy:latest
     restart: unless-stopped
     ports:
-      - "4153:53/udp"  # Host:4153 -> Container:53
+      - "4153:53/udp"  # Test on 4153
       - "4153:53/tcp"
-    entrypoint: ["/bin/sh", "-c", "echo -e '# Forward to Pi-hole first\nserver=172.18.0.3\n# Fallback to Cloudflare and Google if Pi-hole chain fails\nserver=1.1.1.1\nserver=8.8.8.8\n# Use servers in order, only fall back if upstream fails\nstrict-order\n# Don’t resolve locally, just forward\nno-resolv\n# Listen on all interfaces in the container\nlisten-address=0.0.0.0' > /etc/dnsmasq.conf && dnsmasq -k"]
+    volumes:
+      - './container_data/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg'
     depends_on:
       - pihole
     networks:
