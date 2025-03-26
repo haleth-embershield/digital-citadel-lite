@@ -6,19 +6,23 @@ PIHOLE_IP=$(getent hosts pihole | awk '{ print $1 }')
 if [ -n "$PIHOLE_IP" ]; then
     echo "Found Pi-hole at IP $PIHOLE_IP"
     PRIMARY_DNS="$PIHOLE_IP"
+    PRIMARY_PORT="5153"  # Pi-hole uses port 5153
 else
     echo "WARNING: Could not resolve Pi-hole container. Using Cloudflare as primary."
     PRIMARY_DNS="1.1.1.1"
+    PRIMARY_PORT="53"    # Standard DNS port for non-Pi-hole
 fi
 
 # Secondary DNS for failover
-SECONDARY_DNS="8.8.8.8"
-TERTIARY_DNS="1.0.0.1"
+SECONDARY_DNS="1.0.0.1"
+SECONDARY_PORT="53"
+TERTIARY_DNS="8.8.8.8"
+TERTIARY_PORT="53"
 
 echo "Starting DNS forwarder..."
-echo "Primary DNS: $PRIMARY_DNS"
-echo "Secondary DNS: $SECONDARY_DNS"
-echo "Tertiary DNS: $TERTIARY_DNS"
+echo "Primary DNS: $PRIMARY_DNS:$PRIMARY_PORT"
+echo "Secondary DNS: $SECONDARY_DNS:$SECONDARY_PORT"
+echo "Tertiary DNS: $TERTIARY_DNS:$TERTIARY_PORT"
 
 # Test connection at startup
 echo "Testing DNS servers..."
@@ -34,18 +38,19 @@ done
 # Function to start forwarders
 start_forwarders() {
     local dns_server="$1"
-    echo "$(date): Starting forwarders using DNS server: $dns_server"
+    local dns_port="$2"
+    echo "$(date): Starting forwarders using DNS server: $dns_server:$dns_port"
     
     # Kill any existing forwarders
     pkill -f "socat.*UDP4-LISTEN:53" 2>/dev/null || true
     pkill -f "socat.*TCP4-LISTEN:53" 2>/dev/null || true
     
     # Start UDP forwarder
-    socat -d UDP4-LISTEN:53,fork UDP4:$dns_server:53 &
+    socat -d UDP4-LISTEN:53,fork UDP4:$dns_server:$dns_port &
     UDP_PID=$!
     
     # Start TCP forwarder
-    socat -d TCP4-LISTEN:53,fork TCP4:$dns_server:53 &
+    socat -d TCP4-LISTEN:53,fork TCP4:$dns_server:$dns_port &
     TCP_PID=$!
     
     echo "Forwarders started. UDP PID: $UDP_PID, TCP PID: $TCP_PID"
@@ -53,7 +58,8 @@ start_forwarders() {
 
 # Start with primary
 ACTIVE_DNS="$PRIMARY_DNS"
-start_forwarders "$ACTIVE_DNS"
+ACTIVE_PORT="$PRIMARY_PORT"
+start_forwarders "$ACTIVE_DNS" "$ACTIVE_PORT"
 
 # Variables for health check state tracking
 FAILURE_COUNT=0
@@ -71,7 +77,7 @@ RECOVERY_THRESHOLD=3
         MEM_USAGE=$(ps -o rss= -p 1 | awk '{print $1}')
         if [ "$MEM_USAGE" -gt 100000 ]; then  # If over ~100MB
             echo "$(date): High memory usage detected ($MEM_USAGE KB), restarting forwarders"
-            start_forwarders "$ACTIVE_DNS"
+            start_forwarders "$ACTIVE_DNS" "$ACTIVE_PORT"
             continue
         fi
         
@@ -88,7 +94,8 @@ RECOVERY_THRESHOLD=3
                     if nslookup -timeout=2 google.com $PRIMARY_DNS > /dev/null 2>&1; then
                         echo "$(date): Primary DNS recovered! Switching back."
                         ACTIVE_DNS="$PRIMARY_DNS"
-                        start_forwarders "$ACTIVE_DNS"
+                        ACTIVE_PORT="$PRIMARY_PORT"
+                        start_forwarders "$ACTIVE_DNS" "$ACTIVE_PORT"
                         RECOVERY_COUNT=0
                     else
                         echo "$(date): Primary DNS still down."
@@ -112,17 +119,20 @@ RECOVERY_THRESHOLD=3
                 # Determine next DNS server
                 if [ "$ACTIVE_DNS" = "$PRIMARY_DNS" ]; then
                     ACTIVE_DNS="$SECONDARY_DNS"
-                    echo "$(date): Switching to secondary DNS: $ACTIVE_DNS"
+                    ACTIVE_PORT="$SECONDARY_PORT"
+                    echo "$(date): Switching to secondary DNS: $ACTIVE_DNS:$ACTIVE_PORT"
                 elif [ "$ACTIVE_DNS" = "$SECONDARY_DNS" ]; then
                     ACTIVE_DNS="$TERTIARY_DNS"
-                    echo "$(date): Switching to tertiary DNS: $ACTIVE_DNS"
+                    ACTIVE_PORT="$TERTIARY_PORT"
+                    echo "$(date): Switching to tertiary DNS: $ACTIVE_DNS:$ACTIVE_PORT"
                 else
                     # Try primary again as a last resort
                     ACTIVE_DNS="$PRIMARY_DNS"
-                    echo "$(date): Trying primary DNS again: $ACTIVE_DNS"
+                    ACTIVE_PORT="$PRIMARY_PORT"
+                    echo "$(date): Trying primary DNS again: $ACTIVE_DNS:$ACTIVE_PORT"
                 fi
                 
-                start_forwarders "$ACTIVE_DNS"
+                start_forwarders "$ACTIVE_DNS" "$ACTIVE_PORT"
                 FAILURE_COUNT=0
                 RECOVERY_COUNT=0
             fi
@@ -140,7 +150,7 @@ RECOVERY_THRESHOLD=3
         ZOMBIES=$(ps axo stat | grep -c Z)
         if [ "$ZOMBIES" -gt 5 ]; then
             echo "$(date): Detected $ZOMBIES zombie processes, restarting forwarders"
-            start_forwarders "$ACTIVE_DNS"
+            start_forwarders "$ACTIVE_DNS" "$ACTIVE_PORT"
         fi
     done
 ) &
