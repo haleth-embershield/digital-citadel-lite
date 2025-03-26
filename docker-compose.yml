@@ -61,19 +61,17 @@ services:
       - SYS_NICE
       - SYS_TIME
 
-  # dnsdist:
-  #   container_name: dnsdist
-  #   image: powerdns/dnsdist:latest
-  #   restart: unless-stopped
-  #   ports:
-  #     - "4153:53/udp"
-  #     - "4153:53/tcp"
-  #   volumes:
-  #     - './container_data/dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf'
-  #   depends_on:
-  #     - pihole
-  #   networks:
-  #     - dns_network
+  dnsmasq:
+    build: ./dnsmasq-custom
+    container_name: dnsmasq
+    ports:
+      - "4153:53/udp"
+      - "4153:53/tcp"
+    restart: unless-stopped
+    depends_on:
+      - pihole
+    networks:
+      - dns_network
 
 networks:
   dns_network:
